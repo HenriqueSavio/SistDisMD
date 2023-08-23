@@ -1,22 +1,24 @@
-import java.net.*;
 import java.io.*;
+import java.net.*;
+
 public class TCPClient {
-	public static void main (String args[]) {
-	// arguments supply message and hostname of destination
-	Socket s = null;
-	    try{
-	    	int serverPort = 7896;
-		   	s = new Socket(args[1], serverPort);
-		   	DataInputStream in = new DataInputStream( s.getInputStream());
-			DataOutputStream out =
-				new DataOutputStream( s.getOutputStream());
-			out.writeUTF(args[0]);        	// UTF is a string encoding see Sn 4.3
-			String data = in.readUTF();	      
-			System.out.println("Received: "+ data);      
-	    } catch (UnknownHostException e){System.out.println("Sock:"+e.getMessage()); 
-	    } catch (EOFException e){ System.out.println("EOF:"+e.getMessage());
-	    } catch (IOException e){ System.out.println("IO:"+e.getMessage());
-		} finally { if(s!=null) { try { s.close(); } catch (IOException e){System.out.println("close:"+e.getMessage()); } }
-		}
-  	}
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("localhost", 7896);
+            
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            
+            String request = "/,10,5";
+
+            out.println(request);
+            
+            String result = in.readLine();
+            System.out.println(result);
+            
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
