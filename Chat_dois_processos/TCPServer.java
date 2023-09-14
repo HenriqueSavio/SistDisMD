@@ -1,38 +1,62 @@
 import java.net.*;
 import java.io.*;
+
 public class TCPServer {
-	public static void main (String args[]) {
-		try{
-			int serverPort = 7896; // the server port
-			ServerSocket listenSocket = new ServerSocket(serverPort);
-			while(true) {
-				Socket clientSocket = listenSocket.accept();
-				Connection c = new Connection(clientSocket);
-			}
-		} catch(IOException e) {System.out.println("Listen socket:"+e.getMessage());}
-	}
+    public static void main(String args[]) {
+        try {
+            int serverPort = 7896;
+            ServerSocket listenSocket = new ServerSocket(serverPort);
+            System.out.println("Servidor aguardando conexão...");
+
+            while (true) {
+                Socket clientSocket = listenSocket.accept();
+                Connection cc = new Connection(clientSocket);
+            }
+        } catch (IOException e) {
+            System.err.println("Listen socket: " + e.getMessage());
+        }
+    }
 }
+
 class Connection extends Thread {
-	DataInputStream in;
-	DataOutputStream out;
-	Socket clientSocket;
-	public Connection (Socket aClientSocket) {
-		try {
-			clientSocket = aClientSocket;
-			in = new DataInputStream( clientSocket.getInputStream());
-			out =new DataOutputStream( clientSocket.getOutputStream());
-			this.start();
-		} catch(IOException e) {System.out.println("Connection:"+e.getMessage());}
-	}
-	public void run(){
-		try {			                 // an echo server
+    DataInputStream in;
+    PrintWriter out;
+    Socket clientSocket;
 
-			String data = in.readUTF();	                  // read a line of data from the stream
-			out.writeUTF(data);
-		}catch (EOFException e){System.out.println("EOF:"+e.getMessage());
-		} catch(IOException e) {System.out.println("readline:"+e.getMessage());
-		} finally{ try {clientSocket.close();}catch (IOException e){/*close failed*/}}
-		
+    public Connection(Socket aClientSocket) {
+        try {
+            clientSocket = aClientSocket;
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            this.start();
+        } catch (IOException e) {
+            System.err.println("Connection: " + e.getMessage());
+        }
+    }
 
-	}
+    public void run() {
+        try {
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            String message;
+            while ((message = in.readLine()) != null) {
+                System.out.println("Cliente diz: " + message);
+
+                // Responda ao cliente
+                out.println("Servidor recebeu sua mensagem: " + message);
+
+                // Leia uma mensagem para enviar ao cliente
+                System.out.print("Digite uma resposta para o cliente: ");
+                String serverResponse = userInput.readLine();
+                out.println(serverResponse);
+            }
+        } catch (IOException e) {
+            System.err.println("Erro na comunicação com o cliente: " + e.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                System.err.println("Erro ao fechar o socket do cliente: " + e.getMessage());
+            }
+        }
+    }
 }

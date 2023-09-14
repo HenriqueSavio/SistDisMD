@@ -1,20 +1,41 @@
-import java.net.*;
 import java.io.*;
+import java.net.*;
+
 public class TCPClient {
-	public static void main (String args[]) {
-		// arguments supply message and hostname
-		Socket s = null;
-		try{
-			int serverPort = 7896;
-			s = new Socket(args[1], serverPort);    
-			DataInputStream in = new DataInputStream( s.getInputStream());
-			DataOutputStream out =new DataOutputStream( s.getOutputStream());
-			out.writeUTF(args[0]);      	// UTF is a string encoding see Sn. 4.4
-			String data = in.readUTF();	    // read a line of data from the stream
-			System.out.println("Received: "+ data) ; 
-		}catch (UnknownHostException e){System.out.println("Socket:"+e.getMessage());
-		}catch (EOFException e){System.out.println("EOF:"+e.getMessage());
-		}catch (IOException e){System.out.println("readline:"+e.getMessage());
-		}finally {if(s!=null) try {s.close();}catch (IOException e){System.out.println("close:"+e.getMessage());}}
-     }
+    public static void main(String args[]) {
+        if (args.length != 1) {
+            System.out.println("Uso: TCPClient <hostname>");
+            return;
+        }
+
+        Socket socket = null;
+        try {
+            String hostname = args[0];
+            int serverPort = 7896;
+            socket = new Socket(hostname, serverPort);
+
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            String message;
+            while (true) {
+                System.out.print("Digite uma mensagem: ");
+                message = userInput.readLine();
+                out.println(message);
+
+                String response = in.readLine();
+                System.out.println("Servidor diz: " + response);
+            }
+        } catch (IOException e) {
+            System.err.println("Erro: " + e.getMessage());
+        } finally {
+            try {
+                if (socket != null)
+                    socket.close();
+            } catch (IOException e) {
+                System.err.println("Erro ao fechar o socket: " + e.getMessage());
+            }
+        }
+    }
 }
